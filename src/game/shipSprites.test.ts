@@ -15,5 +15,8 @@ describe('ship sprites', () => {
         expect(shipSpriteName('red', 0)).toBe('ship_3.png');
         expect(shipSpriteName('red', 1)).toBe('ship_9.png');
         expect(shipSpriteName('red', 2)).toBe('ship_15.png');
+        expect(shipSpriteName('black', 0)).toBe('ship_2.png');
+        expect(shipSpriteName('black', 1)).toBe('ship_8.png');
+        expect(shipSpriteName('black', 2)).toBe('ship_14.png');
     });
 });

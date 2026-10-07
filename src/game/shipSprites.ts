@@ -1,6 +1,6 @@
-﻿export type ShipColor = 'yellow' | 'red';
+﻿export type ShipColor = 'yellow' | 'red' | 'black';
 
-const BASE_INDEX: Record<ShipColor, number> = { red: 3, yellow: 6 };
+const BASE_INDEX: Record<ShipColor, number> = { black: 2, red: 3, yellow: 6 };
 
 export type DamageTier = 0 | 1 | 2;
 

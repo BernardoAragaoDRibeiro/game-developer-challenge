@@ -2,13 +2,14 @@
 import { getTexture, type Atlas } from './atlas';
 import { damageTier, shipSpriteName, type ShipColor } from './shipSprites';
 import { drainEvents } from './simulation';
-import type { GameConfig, GameEvent, GameState, Ship } from './types';
+import type { EnemyKind, GameConfig, GameEvent, GameState, Ship } from './types';
 
 const SHIP_ROTATION_OFFSET = -Math.PI / 2;
 const BAR_WIDTH = 40;
 const BAR_HEIGHT = 5;
 const EFFECT_SIZE = { explosion: 80, hit: 22, shot: 16 };
 const EFFECT_DURATION = { explosion: 0.45, hit: 0.18, shot: 0.12 };
+const ENEMY_COLOR: Record<EnemyKind, ShipColor> = { chaser: 'red', shooter: 'black' };
 
 class ShipView {
     readonly container = new Container();
@@ -113,7 +114,7 @@ export class GameRenderer {
             liveEnemies.add(e.id);
             let view = this.enemyViews.get(e.id);
             if (!view) {
-                view = new ShipView(this.atlas, 'red', e.radius);
+                view = new ShipView(this.atlas, ENEMY_COLOR[e.kind], e.radius);
                 this.shipsLayer.addChild(view.container);
                 this.enemyViews.set(e.id, view);
             }
