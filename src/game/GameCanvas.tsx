@@ -1,15 +1,13 @@
 ﻿import { useEffect, useRef } from 'react';
-import { Application, Container, Graphics, Sprite } from 'pixi.js';
-import { getTexture, loadAtlas } from './atlas';
+import { Application } from 'pixi.js';
+import { loadAtlas } from './atlas';
 import { GAME_CONFIG as C } from './config';
 import { createKeyboardInput } from './input';
+import { GameRenderer } from './renderer';
 import { createState, step } from './simulation';
 
 const DT = 1 / 60;
-
-const SPRITES = { player: 'ship_1.png', cannonBall: 'cannon_ball.png' };
-const SHIP_LENGTH = 60;
-const SHIP_ROTATION_OFFSET = -Math.PI / 2;
+const newSeed = () => (Math.random() * 2 ** 32) >>> 0;
 
 export function GameCanvas() {
     const hostRef = useRef<HTMLDivElement>(null);
@@ -20,6 +18,12 @@ export function GameCanvas() {
         const keyboard = createKeyboardInput();
         let cancelled = false;
         let initialized = false;
+
+        let restart: (() => void) | undefined;
+        const onRestartKey = (e: KeyboardEvent) => {
+            if (e.code === 'KeyR') restart?.();
+        };
+        window.addEventListener('keydown', onRestartKey);
 
         void (async () => {
             await app.init({
@@ -35,27 +39,21 @@ export function GameCanvas() {
             }
 
             const atlas = await loadAtlas();
-            if (cancelled) return; // cleanup already destroyed the app
+            if (cancelled) return;
             host.appendChild(app.canvas);
 
-            const world = new Container();
-            app.stage.addChild(world);
+            const renderer = new GameRenderer(atlas, C);
+            app.stage.addChild(renderer.root);
 
-            const islands = new Graphics();
-            for (const i of C.islands) islands.circle(i.x, i.y, i.radius).fill(0x6b8e4e);
-
-            const shipTex = getTexture(atlas, SPRITES.player);
-            const ship = new Sprite(shipTex);
-            ship.anchor.set(0.5);
-            ship.scale.set(SHIP_LENGTH / Math.max(shipTex.width, shipTex.height));
-
-            const ballTex = getTexture(atlas, SPRITES.cannonBall);
-            const shotSprites = new Map<number, Sprite>(); // projectile id -> sprite
-
-            world.addChild(islands, ship);
-
-            const state = createState(C);
+            let state = createState(C, newSeed());
             let acc = 0;
+
+            restart = () => {
+                if (state.status !== 'ended') return;
+                state = createState(C, newSeed());
+                renderer.reset();
+                acc = 0;
+            };
 
             app.ticker.add((ticker) => {
                 acc += Math.min(ticker.deltaMS / 1000, 0.1);
@@ -63,33 +61,13 @@ export function GameCanvas() {
                     step(state, keyboard.input, DT, C);
                     acc -= DT;
                 }
-
-                ship.position.set(state.player.x, state.player.y);
-                ship.rotation = state.player.angle + SHIP_ROTATION_OFFSET;
-
-                const alive = new Set<number>();
-                for (const p of state.projectiles) {
-                    alive.add(p.id);
-                    let s = shotSprites.get(p.id);
-                    if (!s) {
-                        s = new Sprite(ballTex);
-                        s.anchor.set(0.5);
-                        world.addChild(s);
-                        shotSprites.set(p.id, s);
-                    }
-                    s.position.set(p.x, p.y);
-                }
-                for (const [id, s] of shotSprites) {
-                    if (!alive.has(id)) {
-                        s.destroy();
-                        shotSprites.delete(id);
-                    }
-                }
+                renderer.sync(state, ticker.deltaMS);
             });
         })();
 
         return () => {
             cancelled = true;
+            window.removeEventListener('keydown', onRestartKey);
             keyboard.dispose();
             if (initialized) app.destroy(true, { children: true });
         };
