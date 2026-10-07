@@ -108,20 +108,46 @@ input[aria-invalid='true'] { border-color: var(--danger); }
 .touch-controls { display: none; }
 @media (pointer: coarse) {
     .touch-controls {
-        display: flex; justify-content: space-between; width: min(100%, 900px); gap: 16px;
-        user-select: none; -webkit-user-select: none;
+        display: none;
     }
-    .touch-cluster { display: flex; gap: 10px; }
-    .touch-btn {
-        width: 64px; height: 64px;
-        font-size: 1.4rem; font-weight: 700;
-        color: var(--cream);
-        background: rgb(138 74 28 / 85%);
-        border: 2px solid var(--gold);
-        border-radius: 50%;
-        touch-action: none;
+
+    @media (pointer: coarse) {
+        .touch-controls {
+            --touch-size: min(64px, calc((100vw - 80px) / 6));
+            display: flex;
+            justify-content: space-between;
+            width: min(100%, 900px);
+            gap: 8px;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .touch-cluster {
+            display: flex;
+            gap: 10px;
+        }
+
+        .touch-btn {
+            width: var(--touch-size);
+            height: var(--touch-size);
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--cream);
+            background: rgb(138 74 28 / 85%);
+            border: 2px solid var(--gold);
+            border-radius: 50%;
+            touch-action: none;
+        }
+
+        .touch-btn:active {
+            background: var(--gold);
+            color: #2a1a08;
+        }
+
+        .canvas-wrap {
+            width: min(100%, calc((100dvh - 160px) * 16 / 9));
+        }
     }
-    .touch-btn:active { background: var(--gold); color: #2a1a08; }
 }
 
 .portrait-hint { display: none; margin: 0; color: #c9c0a6; font-size: 0.9rem; }
