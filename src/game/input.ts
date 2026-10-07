@@ -8,29 +8,32 @@ const KEY_MAP: Record<string, keyof Input> = {
     Space: 'fireFront', KeyQ: 'fireLeft', KeyE: 'fireRight',
 };
 
-export function createKeyboardInput() {
+export function createKeyboardInput(isActive: () => boolean) {
     const input: Input = { ...NO_INPUT };
 
-    const set = (e: KeyboardEvent, value: boolean) => {
+    const onDown = (e: KeyboardEvent) => {
         const action = KEY_MAP[e.code];
-        if (!action) return;
+        if (!action || !isActive()) return;
         e.preventDefault();
-        input[action] = value;
+        input[action] = true;
     };
-    const onDown = (e: KeyboardEvent) => set(e, true);
-    const onUp = (e: KeyboardEvent) => set(e, false);
-    const onBlur = () => Object.assign(input, NO_INPUT);
+    const onUp = (e: KeyboardEvent) => {
+        const action = KEY_MAP[e.code];
+        if (action) input[action] = false;
+    };
+    const reset = () => Object.assign(input, NO_INPUT);
 
     window.addEventListener('keydown', onDown);
     window.addEventListener('keyup', onUp);
-    window.addEventListener('blur', onBlur);
+    window.addEventListener('blur', reset);
 
     return {
         input,
+        reset,
         dispose() {
             window.removeEventListener('keydown', onDown);
             window.removeEventListener('keyup', onUp);
-            window.removeEventListener('blur', onBlur);
+            window.removeEventListener('blur', reset);
         },
     };
 }

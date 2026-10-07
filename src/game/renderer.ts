@@ -1,15 +1,15 @@
-﻿import { Container, Graphics, Sprite, Text } from 'pixi.js';
+﻿import { Container, Graphics, Sprite } from 'pixi.js';
 import { getTexture, type Atlas } from './atlas';
 import { damageTier, shipSpriteName, type ShipColor } from './shipSprites';
 import { drainEvents } from './simulation';
 import type { EnemyKind, GameConfig, GameEvent, GameState, Ship } from './types';
 
 const SHIP_ROTATION_OFFSET = -Math.PI / 2;
+const ENEMY_COLOR: Record<EnemyKind, ShipColor> = { chaser: 'red', shooter: 'black' };
 const BAR_WIDTH = 40;
 const BAR_HEIGHT = 5;
 const EFFECT_SIZE = { explosion: 80, hit: 22, shot: 16 };
 const EFFECT_DURATION = { explosion: 0.45, hit: 0.18, shot: 0.12 };
-const ENEMY_COLOR: Record<EnemyKind, ShipColor> = { chaser: 'red', shooter: 'black' };
 
 class ShipView {
     readonly container = new Container();
@@ -60,50 +60,21 @@ export class GameRenderer {
     private readonly shotsLayer = new Container();
     private readonly effectsLayer = new Container();
     private readonly atlas: Atlas;
-    private readonly config: GameConfig;
     private readonly player: ShipView;
     private readonly enemyViews = new Map<number, ShipView>();
     private readonly shotSprites = new Map<number, Sprite>();
     private effects: Effect[] = [];
     private explosionCount = 0;
 
-    private readonly scoreText = new Text({ text: '', style: { fill: '#ffffff', fontSize: 22, fontFamily: 'sans-serif' } });
-    private readonly timeText = new Text({ text: '', style: { fill: '#ffffff', fontSize: 22, fontFamily: 'sans-serif' } });
-    private readonly banner = new Text({
-        text: '',
-        style: { fill: '#ffffff', fontSize: 40, fontFamily: 'sans-serif', align: 'center', stroke: { color: '#000000', width: 5 } },
-    });
-
     constructor(atlas: Atlas, config: GameConfig) {
         this.atlas = atlas;
-        this.config = config;
-
         const islands = new Graphics();
         for (const i of config.islands) islands.circle(i.x, i.y, i.radius).fill(0x6b8e4e);
 
         this.player = new ShipView(atlas, 'yellow', config.player.radius);
         this.shipsLayer.addChild(this.player.container);
 
-        this.scoreText.position.set(16, 12);
-        this.timeText.anchor.set(1, 0);
-        this.timeText.position.set(config.arena.width - 16, 12);
-        this.banner.anchor.set(0.5);
-        this.banner.position.set(config.arena.width / 2, config.arena.height / 2);
-
-        this.root.addChild(
-            islands, this.shipsLayer, this.shotsLayer, this.effectsLayer,
-            this.scoreText, this.timeText, this.banner,
-        );
-    }
-
-    reset(): void {
-        for (const v of this.enemyViews.values()) v.container.destroy({ children: true });
-        this.enemyViews.clear();
-        for (const s of this.shotSprites.values()) s.destroy();
-        this.shotSprites.clear();
-        for (const e of this.effects) e.sprite.destroy();
-        this.effects = [];
-        this.banner.text = '';
+        this.root.addChild(islands, this.shipsLayer, this.shotsLayer, this.effectsLayer);
     }
 
     sync(state: GameState, frameMs: number): void {
@@ -149,7 +120,6 @@ export class GameRenderer {
 
         for (const ev of drainEvents(state)) this.addEffect(ev);
         this.updateEffects(frameMs / 1000);
-        this.updateHud(state);
     }
 
     private addEffect(ev: GameEvent): void {
@@ -176,19 +146,5 @@ export class GameRenderer {
             e.sprite.alpha = 1 - t;
             return true;
         });
-    }
-
-    private updateHud(state: GameState): void {
-        const score = `Score: ${state.score}`;
-        if (this.scoreText.text !== score) this.scoreText.text = score;
-
-        const remaining = Math.ceil(this.config.match.duration - state.time);
-        const time = `Time: ${Math.max(0, remaining)}s`;
-        if (this.timeText.text !== time) this.timeText.text = time;
-
-        const banner = state.status === 'ended'
-            ? `${state.endReason === 'death' ? 'Game Over' : "Time's up"}\nScore: ${state.score}\nPress R to play again`
-            : '';
-        if (this.banner.text !== banner) this.banner.text = banner;
     }
 }

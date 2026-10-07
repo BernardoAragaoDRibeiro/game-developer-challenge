@@ -1,2 +1,133 @@
-body { margin: 0; background: #06202f; display: grid; place-items: center; min-height: 100vh; }
-canvas { max-width: 100%; height: auto !important; }
+:root {
+    --navy: #14233a;
+    --navy-light: #1f3552;
+    --wood: #8a4a1c;
+    --gold: #e0a93b;
+    --cream: #fff4d6;
+    --danger: #ff9b8f;
+    color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    min-height: 100dvh;
+    background: radial-gradient(circle at 50% 0%, var(--navy-light), #06202f 70%);
+    color: var(--cream);
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.4;
+}
+
+h1, h2 { font-family: Georgia, 'Times New Roman', serif; margin: 0 0 12px; color: var(--gold); }
+h1 { font-size: clamp(2rem, 6vw, 3rem); text-align: center; }
+h1:focus { outline: none; }
+
+.panel {
+    width: min(560px, calc(100% - 32px));
+    margin: 24px auto;
+    padding: 24px;
+    background: var(--navy);
+    border: 4px solid var(--wood);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgb(0 0 0 / 50%);
+}
+.panel section { margin-top: 24px; }
+.muted { color: #c9c0a6; font-size: 0.9rem; margin: 4px 0 0; }
+.error { color: var(--danger); font-size: 0.9rem; min-height: 1.3em; margin: 4px 0 0; }
+
+.button-row { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin: 16px 0; }
+
+.btn {
+    min-height: 44px;
+    padding: 8px 24px;
+    font: inherit;
+    font-weight: 700;
+    color: var(--cream);
+    background: var(--wood);
+    border: 2px solid var(--gold);
+    border-radius: 10px;
+    cursor: pointer;
+}
+.btn.primary { background: var(--gold); color: #2a1a08; }
+.btn.small { min-height: 36px; padding: 4px 16px; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn:hover:not(:disabled) { filter: brightness(1.1); }
+
+:focus-visible { outline: 3px solid #ffd166; outline-offset: 2px; }
+
+.field { margin-bottom: 8px; }
+label { display: block; font-weight: 700; margin-bottom: 6px; }
+input[type='number'] {
+    width: 100%;
+    min-height: 44px;
+    padding: 8px 12px;
+    font: inherit;
+    color: var(--cream);
+    background: #0b1626;
+    border: 2px solid var(--wood);
+    border-radius: 8px;
+}
+input[aria-invalid='true'] { border-color: var(--danger); }
+
+.controls { margin: 0; }
+.controls-row { display: flex; gap: 12px; padding: 6px 0; border-bottom: 1px solid rgb(255 255 255 / 10%); }
+.controls dt { min-width: 11em; font-weight: 700; color: var(--gold); }
+.controls dd { margin: 0; }
+
+.stats { margin: 16px 0; }
+.stats div { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgb(255 255 255 / 10%); }
+.stats dt { color: #c9c0a6; }
+.stats dd { margin: 0; font-weight: 700; }
+
+.game-screen { display: flex; flex-direction: column; align-items: center; padding: 8px; gap: 8px; }
+
+.hud {
+    display: flex; gap: 24px; align-items: center; justify-content: center;
+    font-size: 1.2rem; font-weight: 600;
+}
+
+.canvas-wrap {
+    position: relative;
+    width: min(100%, calc((100dvh - 120px) * 16 / 9));
+    border: 4px solid var(--wood);
+    border-radius: 8px;
+    overflow: hidden;
+}
+.canvas-host canvas { display: block; width: 100% !important; height: auto !important; }
+
+.overlay {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 8px; padding: 16px; text-align: center;
+    background: rgb(6 20 34 / 88%);
+    overflow: auto;
+}
+.overlay .controls { max-width: 420px; width: 100%; text-align: left; }
+
+.touch-controls { display: none; }
+@media (pointer: coarse) {
+    .touch-controls {
+        display: flex; justify-content: space-between; width: min(100%, 900px); gap: 16px;
+        user-select: none; -webkit-user-select: none;
+    }
+    .touch-cluster { display: flex; gap: 10px; }
+    .touch-btn {
+        width: 64px; height: 64px;
+        font-size: 1.4rem; font-weight: 700;
+        color: var(--cream);
+        background: rgb(138 74 28 / 85%);
+        border: 2px solid var(--gold);
+        border-radius: 50%;
+        touch-action: none;
+    }
+    .touch-btn:active { background: var(--gold); color: #2a1a08; }
+}
+
+.portrait-hint { display: none; margin: 0; color: #c9c0a6; font-size: 0.9rem; }
+@media (orientation: portrait) and (max-width: 700px) { .portrait-hint { display: block; } }
+
+.sr-only {
+    position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
