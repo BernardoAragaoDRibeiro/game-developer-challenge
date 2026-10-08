@@ -60,7 +60,7 @@ describe('settings persistence', () => {
     it('persists and validates the last result', () => {
         expect(loadLastResult()).toBe(null);
         const r = {
-            score: 7, playedSeconds: 61.5, reason: 'death' as const,
+            matchId: 'm-1', score: 7, playedSeconds: 61.5, reason: 'death' as const,
             finishedAt: '2026-10-08T10:00:00.000Z', settings: { sessionTime: 90, spawnInterval: 3 },
         };
         saveLastResult(r);

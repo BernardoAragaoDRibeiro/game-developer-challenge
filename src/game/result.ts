@@ -2,6 +2,7 @@
 import type { EndReason } from './types';
 
 export interface MatchResult {
+    matchId: string;
     score: number;
     playedSeconds: number;
     reason: EndReason;
@@ -26,7 +27,7 @@ export function loadLastResult(): MatchResult | null {
         const o = r as Record<string, unknown>;
         const s = o.settings as Record<string, unknown> | undefined;
         const valid =
-            typeof o.score === 'number' && typeof o.playedSeconds === 'number' &&
+            typeof o.matchId === 'string' && typeof o.score === 'number' && typeof o.playedSeconds === 'number' &&
             (o.reason === 'time' || o.reason === 'death') && typeof o.finishedAt === 'string' &&
             typeof s?.sessionTime === 'number' && typeof s.spawnInterval === 'number';
         return valid ? (r as MatchResult) : null;

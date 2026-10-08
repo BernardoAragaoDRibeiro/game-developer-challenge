@@ -6,6 +6,7 @@ import type { GameConfig } from '../game/types';
 import { ControlsList } from './ControlsList';
 import { trapFocus } from './focusTrap';
 import { TouchControls } from './TouchControls';
+import { newId } from '../api/ids';
 
 interface Props {
     config: GameConfig;
@@ -37,7 +38,7 @@ export function GameScreen({ config, settings, onFinish, onQuit }: Props) {
         const session = new GameSession(hostRef.current!, config, {
             onHud: setHud,
             onEnd: (s) =>
-                onFinishRef.current({ ...s, finishedAt: new Date().toISOString(), settings }),
+                onFinishRef.current({ ...s, matchId: newId(), finishedAt: new Date().toISOString(), settings }),
         });
         sessionRef.current = session;
         session.start().then(
