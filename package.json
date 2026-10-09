@@ -12,6 +12,7 @@
     "test:e2e": "playwright test",
     "test:e2e:desktop": "playwright test --project=desktop-chromium",
     "test:e2e:update": "playwright test --update-snapshots",
+    "test:perf": "playwright test --project=desktop-chromium e2e/perf.e2e.ts",
     "typecheck": "tsc -b"
   },
   "dependencies": {

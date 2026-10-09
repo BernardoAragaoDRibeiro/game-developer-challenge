@@ -1,0 +1,22 @@
+{
+  "timestamp": "2026-10-09T08:08:58.089Z",
+  "environment": {
+    "browser": "chromium",
+    "platform": "win32",
+    "arch": "x64",
+    "cpus": 16,
+    "totalMemoryMb": 32506,
+    "viewport": "1280x800"
+  },
+  "matchConfig": {
+    "sessionTime": 180,
+    "spawnInterval": 3
+  },
+  "results": {
+    "totalFrames": 1636,
+    "avgFps": 9.1,
+    "minFps": 2,
+    "p95FrameTimeMs": 141.5,
+    "entityCountAtEnd": 1
+  }
+}
