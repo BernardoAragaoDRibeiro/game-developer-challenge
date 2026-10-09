@@ -94,6 +94,8 @@ input[aria-invalid='true'] { border-color: var(--danger); }
     border-radius: 8px;
     overflow: hidden;
 }
+
+.canvas-host { aspect-ratio: 16 / 9; }
 .canvas-host canvas { display: block; width: 100% !important; height: auto !important; }
 
 .overlay {

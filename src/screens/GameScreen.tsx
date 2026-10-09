@@ -1,12 +1,13 @@
 ﻿import { useEffect, useRef, useState } from 'react';
+import { newId } from '../api/ids';
 import type { MatchResult } from '../game/result';
 import { GameSession, type HudSnapshot } from '../game/session';
+import { E2E } from '../testing/e2e';
 import type { Settings } from '../game/settings';
 import type { GameConfig } from '../game/types';
 import { ControlsList } from './ControlsList';
 import { trapFocus } from './focusTrap';
 import { TouchControls } from './TouchControls';
-import { newId } from '../api/ids';
 
 interface Props {
     config: GameConfig;
@@ -39,14 +40,19 @@ export function GameScreen({ config, settings, onFinish, onQuit }: Props) {
             onHud: setHud,
             onEnd: (s) =>
                 onFinishRef.current({ ...s, matchId: newId(), finishedAt: new Date().toISOString(), settings }),
-        });
+        }, { seed: E2E?.seed, manualClock: E2E !== null });
         sessionRef.current = session;
         session.start().then(
-            () => { if (active) setLoad('ready'); },
+            () => {
+                if (!active) return;
+                setLoad('ready');
+                if (E2E) window.__pirate = { advance: (s) => session.advance(s), snapshot: () => session.snapshot() };
+            },
             () => { if (active) setLoad('error'); },
         );
         return () => {
             active = false;
+            delete window.__pirate;
             session.destroy();
             sessionRef.current = null;
         };

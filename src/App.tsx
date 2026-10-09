@@ -4,6 +4,7 @@ import { toRecord } from './api/records';
 import { loadLastResult, saveLastResult, type MatchResult } from './game/result';
 import { buildConfig, loadSettings, type Settings } from './game/settings';
 import type { GameConfig } from './game/types';
+import { applyOverrides, E2E } from './testing/e2e';
 import { GameScreen } from './screens/GameScreen';
 import { MainMenu } from './screens/MainMenu';
 import { OptionsScreen } from './screens/OptionsScreen';
@@ -23,7 +24,9 @@ export default function App() {
 
     const startGame = () => {
         const settings = loadSettings();
-        setScreen({ name: 'game', runId: ++runCounter.current, config: buildConfig(settings), settings });
+        const base = buildConfig(settings);
+        const config = E2E ? applyOverrides(base, E2E.overrides) : base;
+        setScreen({ name: 'game', runId: ++runCounter.current, config, settings });
     };
     const toMenu = () => setScreen({ name: 'menu' });
 

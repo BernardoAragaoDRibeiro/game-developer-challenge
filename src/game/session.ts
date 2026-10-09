@@ -3,6 +3,7 @@ import { loadAtlas } from './atlas';
 import { createKeyboardInput } from './input';
 import { GameRenderer } from './renderer';
 import { createState, NO_INPUT, step } from './simulation';
+import type { TestSnapshot } from '../testing/e2e';
 import type { EndReason, GameConfig, GameState, Input } from './types';
 
 const DT = 1 / 60;
@@ -23,6 +24,11 @@ export interface EndSummary {
     reason: EndReason;
 }
 
+export interface SessionOptions {
+    seed?: number;
+    manualClock?: boolean;
+}
+
 interface Callbacks {
     onHud: (hud: HudSnapshot) => void;
     onEnd: (summary: EndSummary) => void;
@@ -36,6 +42,8 @@ export class GameSession {
     private readonly touch: Input = { ...NO_INPUT };
     private readonly merged: Input = { ...NO_INPUT };
     private readonly state: GameState;
+    private readonly manualClock: boolean;
+    private renderer: GameRenderer | undefined;
     private keyboard: ReturnType<typeof createKeyboardInput> | undefined;
     private acc = 0;
     private paused = false;
@@ -45,11 +53,12 @@ export class GameSession {
     private endTimer: number | undefined;
     private lastHud = '';
 
-    constructor(host: HTMLElement, config: GameConfig, callbacks: Callbacks) {
+    constructor(host: HTMLElement, config: GameConfig, callbacks: Callbacks, options: SessionOptions = {}) {
         this.host = host;
         this.config = config;
         this.callbacks = callbacks;
-        this.state = createState(config, (Math.random() * 2 ** 32) >>> 0);
+        this.manualClock = options.manualClock ?? false;
+        this.state = createState(config, options.seed ?? (Math.random() * 2 ** 32) >>> 0);
     }
 
     async start(): Promise<void> {
@@ -73,6 +82,7 @@ export class GameSession {
         this.host.appendChild(this.app.canvas);
         const renderer = new GameRenderer(atlas, this.config);
         this.app.stage.addChild(renderer.root);
+        this.renderer = renderer;
 
         this.keyboard = createKeyboardInput(() => this.isActive());
         window.addEventListener('keydown', this.onKeyDown);
@@ -80,7 +90,7 @@ export class GameSession {
         document.addEventListener('visibilitychange', this.onVisibility);
 
         this.app.ticker.add((ticker) => {
-            if (this.isActive()) {
+            if (this.isActive() && !this.manualClock) {
                 this.acc += Math.min(ticker.deltaMS / 1000, 0.1);
                 this.mergeInput();
                 while (this.acc >= DT) {
@@ -110,6 +120,32 @@ export class GameSession {
         this.acc = 0;
         this.clearInput();
         this.emitHud();
+    }
+
+    advance(seconds: number): void {
+        const steps = Math.round(seconds / DT);
+        for (let i = 0; i < steps && this.isActive(); i++) {
+            this.mergeInput();
+            step(this.state, this.merged, DT, this.config);
+        }
+        this.renderer?.sync(this.state, 0);
+        this.emitHud();
+        this.checkEnd();
+    }
+
+    snapshot(): TestSnapshot {
+        const s = this.state;
+        return {
+            time: s.time,
+            status: s.status,
+            endReason: s.endReason,
+            score: s.score,
+            paused: this.paused,
+            spawned: s.spawned,
+            player: { x: s.player.x, y: s.player.y, angle: s.player.angle, health: s.player.health },
+            enemies: s.enemies.map((e) => ({ id: e.id, kind: e.kind, x: e.x, y: e.y, health: e.health })),
+            projectiles: s.projectiles.map((p) => ({ owner: p.owner, x: p.x, y: p.y, vx: p.vx, vy: p.vy })),
+        };
     }
 
     setTouch(key: keyof Input, pressed: boolean): void {

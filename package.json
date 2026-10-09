@@ -6,9 +6,13 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest run"
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "test:e2e:desktop": "playwright test --project=desktop-chromium",
+    "test:e2e:update": "playwright test --update-snapshots",
+    "typecheck": "tsc -b"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.104.1",
